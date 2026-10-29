@@ -41,7 +41,7 @@ for _ in range(0, 4):
 
 print(list_of_ids)
 
-if any(item < 810 for item in list_of_ids):
+if any(item < 700 for item in list_of_ids):
     with smtplib.SMTP("smtp.gmail.com") as connection:
         connection.starttls()
         connection.login(MY_EMAIL, MY_PASSWORD)
