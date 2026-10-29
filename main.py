@@ -5,34 +5,50 @@
 # 4. Update birthdays.csv to contain today's month and day.
 # See the solution video in the 100 Days of Python Course for explainations.
 
-
-from datetime import datetime
-import pandas
-import random
 import smtplib
 import os
 
 # import os and use it to get the Github repository secrets
+import requests
+import smtplib
+
 MY_EMAIL = os.environ.get("MY_EMAIL")
 MY_PASSWORD = os.environ.get("MY_PASSWORD")
 
-today = datetime.now()
-today_tuple = (today.month, today.day)
+EMAIL_TO_SEND = os.environ.get("EMAIL_TO_SEND")
 
-data = pandas.read_csv("birthdays.csv")
-birthdays_dict = {(data_row["month"], data_row["day"])                  : data_row for (index, data_row) in data.iterrows()}
-if today_tuple in birthdays_dict:
-    birthday_person = birthdays_dict[today_tuple]
-    file_path = f"letter_templates/letter_{random.randint(1, 3)}.txt"
-    with open(file_path) as letter_file:
-        contents = letter_file.read()
-        contents = contents.replace("[NAME]", birthday_person["name"])
+OWM_Endpoint = "https://api.openweathermap.org/data/2.5/forecast"
+api_key = os.environ.get("OWM_API_KEY")
 
-    with smtplib.SMTP("YOUR EMAIL PROVIDER SMTP SERVER ADDRESS") as connection:
+parameters = {
+    "lat": 54.518890,
+    "lon": 18.530540,
+    "appid": api_key,
+    "cnt": 4
+}
+
+response = requests.get(OWM_Endpoint, params=parameters)
+response.raise_for_status()
+weather_data = response.json()
+
+item_in_list = 0
+id_for_rain = weather_data["list"][item_in_list]["weather"][0]["id"]
+
+list_of_ids = []
+for _ in range(0, 4):
+    item_in_list += 1
+    list_of_ids.append(id_for_rain)
+
+print(list_of_ids)
+
+if any(item < 810 for item in list_of_ids):
+    with smtplib.SMTP("smtp.gmail.com") as connection:
         connection.starttls()
         connection.login(MY_EMAIL, MY_PASSWORD)
         connection.sendmail(
             from_addr=MY_EMAIL,
-            to_addrs=birthday_person["email"],
-            msg=f"Subject:Happy Birthday!\n\n{contents}"
+            to_addrs=EMAIL_TO_SEND,
+            msg=f"Subject:Take an umbrella!\n\nIt's going to rain today. Remember to bring an umbrella!"
         )
+
+
