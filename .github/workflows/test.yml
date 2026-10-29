@@ -48,7 +48,7 @@ jobs:
 
       - name: Check required files
         run: |
-          for file in main.py requirements.txt birthdays.csv; do
+          for file in main.py requirements.txt; do
             if [ -f "$file" ]; then
               echo "$file found"
             else
